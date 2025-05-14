@@ -10,3 +10,9 @@ Currently, two official plugins are available:
 ## Expanding the ESLint configuration
 
 If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+
+## 설치 방법
+
+파일이 위치한 디렉토리에서 cmd를 연 후, npm install 명령으로 라이브러리 설치
+
+이후 npm run dev 명령으로 포트를 열어 실행.

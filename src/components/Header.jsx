@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import { useRef, useEffect, useState } from "react";
 
 const menuItems = [
   { name: "홈", path: "/" },
@@ -66,6 +66,7 @@ export default function Header() {
               <Link
                 key={item.path}
                 to={item.path}
+                onClick={() => setIsOpen(false) /** 메뉴 클릭시 리스트 닫기 */}
                 className="hover:text-blue-500"
               >
                 {item.name}
