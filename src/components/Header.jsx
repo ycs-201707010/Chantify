@@ -14,6 +14,18 @@ const menuItems = [
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (isOpen && menuRef.current && !menuRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isOpen]);
 
   return (
     <header className="border-b shadow-sm sticky top-0 z-50 bg-white">
