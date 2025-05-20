@@ -17,15 +17,29 @@ export default function Header() {
   const menuRef = useRef(null);
 
   useEffect(() => {
+    // ⚡ 클릭 이벤트를 감지하는 함수 정의
     const handleClickOutside = (e) => {
-      if (isOpen && menuRef.current && !menuRef.current.contains(e.target)) {
-        setIsOpen(false);
+      // isOpen이 true일 때만 작동 (메뉴가 열려 있을 때만)
+      // menuRef.current는 메뉴 DOM 요소를 참조
+      // e.target은 사용자가 실제로 클릭한 요소
+
+      if (
+        isOpen && // 메뉴가 열려 있고
+        menuRef.current && // menuRef가 뭔가를 참조하고 있으며
+        !menuRef.current.contains(e.target) // 클릭한 대상이 메뉴 내부가 아니라면
+      ) {
+        setIsOpen(false); // 👉 메뉴 닫기
       }
     };
 
+    // 🔔 마우스를 눌렀을 때 handleClickOutside 함수를 실행하도록 이벤트 등록
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isOpen]);
+
+    // 🧹 컴포넌트가 언마운트되거나 isOpen이 바뀔 때 이벤트 제거 (메모리 누수 방지)
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen]); // 💡 isOpen이 바뀔 때마다 이 effect가 다시 실행됨
 
   return (
     <header className="border-b shadow-sm sticky top-0 z-50 bg-white">
@@ -73,7 +87,10 @@ export default function Header() {
 
         {/* 모바일 드롭다운 메뉴 */}
         {isOpen && (
-          <nav className="absolute top-full left-0 w-full border-t shadow-md md:hidden px-4 py-3 flex flex-col gap-2 text-gray-700 z-40 text-center">
+          <nav
+            ref={menuRef}
+            className="absolute top-full left-0 w-full border-t shadow-md md:hidden px-4 py-3 flex flex-col gap-2 text-gray-700 z-40 text-center"
+          >
             {menuItems.map((item) => (
               <Link
                 key={item.path}
