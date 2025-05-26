@@ -6,7 +6,7 @@ const menuItems = [
   { name: "일정", path: "/schedule" },
   { name: "순위", path: "/ranking" },
   { name: "뉴스", path: "/news" },
-  { name: "커뮤니티", path: "/community" },
+  { name: "커뮤니티", path: "./community" },
   { name: "배팅", path: "/betting" },
   { name: "상점", path: "/shop" },
   { name: "마이페이지", path: "/mypage" },
@@ -15,6 +15,10 @@ const menuItems = [
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef(null);
+
+  // 상단에 추가
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // 임시 로그인 상태
+  const profileImgUrl = "https://avatars.githubusercontent.com/u/9919?v=4"; // 더미 이미지
 
   useEffect(() => {
     // ⚡ 클릭 이벤트를 감지하는 함수 정의
@@ -116,7 +120,29 @@ export default function Header() {
 
         {/* 오른쪽: 로그인 or 아이콘 */}
         <div className="text-sm text-gray-500 whitespace-nowrap">
-          아이콘 배치
+          {isLoggedIn ? (
+            <img
+              src={profileImageUrl}
+              alt="프로필"
+              className="w-8 h-8 rounded-full border border-gray-300 dark:border-zinc-700"
+            />
+          ) : (
+            <>
+              {/* <Link> 태그는 JSX 식이라서 부모 태그가 하나 있어야 한다. 따라서 빈 태그를 하나 생성. */}
+              <Link
+                to="/login"
+                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+              >
+                로그인
+              </Link>
+              <Link
+                to="/signup"
+                className="border px-3 py-1 rounded hover:bg-blue-600 hover:text-white dark:text-white dark:border-white dark:hover:bg-blue-500 ml-3"
+              >
+                회원가입
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </header>
