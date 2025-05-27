@@ -47,6 +47,30 @@ export default function Header() {
     };
   }, [isOpen]); // 💡 isOpen이 바뀔 때마다 이 effect가 다시 실행됨
 
+  // 세션 조회용 useEffect
+  useEffect(() => {
+    const checkLogin = async () => {
+      try {
+        const res = await fetch("/checksum/check-session.jsp");
+        const data = await res.json();
+
+        if (data.loggedIn) {
+          setIsLoggedIn(true);
+          // 필요 시 user_id를 활용해 추가 프로필 정보 요청 가능
+          setProfileImageUrl(
+            "https://avatars.githubusercontent.com/u/9919?v=4"
+          ); // 예시
+        } else {
+          setIsLoggedIn(false);
+        }
+      } catch (err) {
+        console.error("세션 확인 실패", err);
+      }
+    };
+
+    checkLogin();
+  }, []);
+
   return (
     <header
       className="border-b shadow-sm sticky top-0 z-50 bg-white"
@@ -122,7 +146,7 @@ export default function Header() {
         <div className="text-sm text-gray-500 whitespace-nowrap">
           {isLoggedIn ? (
             <img
-              src={profileImageUrl}
+              src={profileImgUrl}
               alt="프로필"
               className="w-8 h-8 rounded-full border border-gray-300 dark:border-zinc-700"
             />

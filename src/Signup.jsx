@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { CheckCircleIcon } from "@heroicons/react/24/solid"; // npm install @heroicons/react. 아이콘을 추가한다.
 
 export default function Signup() {
@@ -19,6 +20,9 @@ export default function Signup() {
     password: false,
     passwordMatch: false,
   });
+
+  // 페이지 이동
+  const navigate = useNavigate();
 
   // 유효성 검사 함수 정의
   const validateUsername = (username) => /^[a-zA-Z0-9_]{4,16}$/.test(username);
@@ -90,6 +94,33 @@ export default function Signup() {
     form.email &&
     form.password &&
     form.passwordCheck;
+
+  // 회원가입 버튼 눌렀을 때 메서드
+  const handleSubmit = async () => {
+    const formData = new URLSearchParams(form).toString(); // form: useState로 관리 중
+
+    try {
+      const res = await fetch("/checksum/signup.jsp", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: formData,
+      });
+
+      const result = await res.json();
+
+      if (result.success) {
+        alert("성공적으로 회원가입이 완료되었습니다!");
+        navigate("/login");
+      } else {
+        alert("회원 가입에 실패하였습니다. : " + result.error);
+        navigate("");
+      }
+    } catch (err) {
+      alert("서버 연결 실패!");
+    }
+  };
 
   return (
     <div className="max-w-md mx-auto mt-10 p-6 border rounded-lg shadow-md bg-white dark:bg-zinc-800">
@@ -263,6 +294,7 @@ export default function Signup() {
       {/* 제출 버튼 */}
       <button
         type="submit"
+        onClick={handleSubmit}
         disabled={!isAllValid}
         className={`w-full py-2 rounded text-white transition ${
           isAllValid

@@ -1,29 +1,80 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 
 export default function Login() {
+  const [form, setForm] = useState({ username: "", password: "" });
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!form.username || !form.password) {
+      setError("아이디와 비밀번호를 모두 입력하세요.");
+      return;
+    }
+
+    const res = await fetch("/checksum/login.jsp", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(form),
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      navigate("/"); // 로그인 성공 시 메인으로 이동
+    } else {
+      setError(data.message || "로그인 실패");
+    }
+  };
+
   return (
-    <div>
+    <form onSubmit={handleSubmit}>
       <div className="flex flex-col items-center mt-10 max-w-7xl mx-auto">
         <h2 className="text-2xl font-bold mb-6 text-center text-gray-800 dark:text-white">
           로그인
         </h2>
         <div className="flex flex-col items-center gap-y-3 bg-gray-100 p-4 rounded-lg">
           <div className="w-md">
-            <label htmlFor="" className="block text-sm font-bold mb-2">
+            <label
+              htmlFor="input_username"
+              className="block text-sm font-bold mb-2"
+            >
               아이디
             </label>
-            <input type="text" className="w-64 h-8" />
+            <input
+              type="text"
+              id="input_username"
+              name="username"
+              value={form.username}
+              onChange={handleChange}
+              className="w-64 h-8"
+            />
           </div>
           <div className="w-md">
-            <label htmlFor="" className="block text-sm font-bold mb-2">
+            <label
+              htmlFor="input_password"
+              className="block text-sm font-bold mb-2"
+            >
               비밀번호
             </label>
-            <input type="password" className="w-64 h-8" />
+            <input
+              type="password"
+              id="input_password"
+              name="password"
+              value={form.password}
+              onChange={handleChange}
+              className="w-64 h-8"
+            />
           </div>
 
           <button
             type="submit"
-            className="bg-blue-600 w-full py-2 rounded text-white transition bg-green-500 hover:bg-green-700"
+            className="w-full py-2 rounded text-white transition bg-green-500 hover:bg-green-700"
           >
             로그인
           </button>
@@ -42,6 +93,6 @@ export default function Login() {
           </Link>
         </div>
       </div>
-    </div>
+    </form>
   );
 }
