@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useRef, useEffect, useState } from "react";
 
 const menuItems = [
@@ -15,10 +16,13 @@ const menuItems = [
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef(null);
+  const navigate = useNavigate();
 
   // 상단에 추가
   const [isLoggedIn, setIsLoggedIn] = useState(false); // 임시 로그인 상태
   const profileImgUrl = "https://avatars.githubusercontent.com/u/9919?v=4"; // 더미 이미지
+
+  // setProfileImageUrl : 사용자 프로필 사진 불러와서 설정하는?메서드
 
   useEffect(() => {
     // ⚡ 클릭 이벤트를 감지하는 함수 정의
@@ -57,9 +61,9 @@ export default function Header() {
         if (data.loggedIn) {
           setIsLoggedIn(true);
           // 필요 시 user_id를 활용해 추가 프로필 정보 요청 가능
-          setProfileImageUrl(
-            "https://avatars.githubusercontent.com/u/9919?v=4"
-          ); // 예시
+          // setProfileImageUrl(
+          //   "https://avatars.githubusercontent.com/u/9919?v=4"
+          // ); // 예시
         } else {
           setIsLoggedIn(false);
         }
@@ -70,6 +74,23 @@ export default function Header() {
 
     checkLogin();
   }, []);
+
+  // 로그아웃 핸들
+  const handleLogout = async () => {
+    try {
+      const res = await fetch("/checksum/logout.jsp");
+      const data = await res.json();
+      if (data.success) {
+        setIsLoggedIn(false); // 상태 초기화
+        navigate("/"); // 메인 화면으로 이동
+      } else {
+        alert("로그아웃 실패: " + data.error);
+      }
+    } catch (err) {
+      console.error("로그아웃 에러", err);
+      alert("서버 오류로 로그아웃에 실패했습니다.");
+    }
+  };
 
   return (
     <header
@@ -145,23 +166,32 @@ export default function Header() {
         {/* 오른쪽: 로그인 or 아이콘 */}
         <div className="text-sm text-gray-500 whitespace-nowrap">
           {isLoggedIn ? (
-            <img
-              src={profileImgUrl}
-              alt="프로필"
-              className="w-8 h-8 rounded-full border border-gray-300 dark:border-zinc-700"
-            />
+            <div className="flex flex-row items-center">
+              <img
+                src={profileImgUrl}
+                alt="프로필"
+                className="w-8 h-8 rounded-full border border-gray-300 dark:border-zinc-700 mr-3"
+              />
+
+              <Link
+                onClick={handleLogout}
+                className="text-red-500 hover:text-red-700 transition"
+              >
+                로그아웃
+              </Link>
+            </div>
           ) : (
             <>
               {/* <Link> 태그는 JSX 식이라서 부모 태그가 하나 있어야 한다. 따라서 빈 태그를 하나 생성. */}
               <Link
                 to="/login"
-                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition"
               >
                 로그인
               </Link>
               <Link
                 to="/signup"
-                className="border px-3 py-1 rounded hover:bg-blue-600 hover:text-white dark:text-white dark:border-white dark:hover:bg-blue-500 ml-3"
+                className="border px-3 py-1 rounded hover:bg-blue-600 hover:text-white dark:text-white dark:border-white dark:hover:bg-blue-500 ml-3 transition"
               >
                 회원가입
               </Link>
@@ -172,3 +202,7 @@ export default function Header() {
     </header>
   );
 }
+
+/** 추후 개발
+ * 1. 프로필 사진 클릭시 메뉴 상자 토글 (inflearn 참조.)
+ */

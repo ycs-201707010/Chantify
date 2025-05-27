@@ -19,7 +19,7 @@ export default function MainPage({ user }) {
             👋 {user.nickname}님, 환영합니다!
           </h1>
         ) : (
-          <h1 className="text-2xl">로그인하고 시작해보세요!</h1>
+          <h1 className="text-2xl"></h1>
         )}
       </main>
     </div>
