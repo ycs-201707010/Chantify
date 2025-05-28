@@ -148,7 +148,7 @@ export default function Header() {
         {isOpen && (
           <nav
             ref={menuRef}
-            className="absolute top-full left-0 w-full border-t shadow-md md:hidden px-4 py-3 flex flex-col gap-2 text-gray-700 z-40 text-center"
+            className="absolute top-full left-0 w-full border-t shadow-md md:hidden px-4 py-3 flex flex-col gap-2 text-gray-700 text-center bg-white dark:bg-zinc-900 z-40"
           >
             {menuItems.map((item) => (
               <Link

@@ -13,6 +13,8 @@
   "dependencies": {
     "@heroicons/react": "^2.2.0",
     "@tailwindcss/vite": "^4.1.6",
+    "@toast-ui/editor": "^3.2.2",
+    "@toast-ui/react-editor": "^3.2.3",
     "fs-extra": "^11.3.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",

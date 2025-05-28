@@ -1,11 +1,15 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Header from "./components/Header";
 
 const categories = ["전체", "공지사항", "자유게시판", "유머게시판"];
 
 export default function Community() {
   const [selectedCategory, setSelectedCategory] = useState("전체");
+
+  // 페이지 이동
+  const navigate = useNavigate();
 
   return (
     <div className="bg-gray-50 dark:bg-zinc-900 min-h-screen">
@@ -20,8 +24,8 @@ export default function Community() {
               onClick={() => setSelectedCategory(cat)}
               className={`px-4 py-1 rounded border ${
                 selectedCategory === cat
-                  ? "bg-black text-white dark:bg-white dark:text-black"
-                  : "bg-white dark:bg-zinc-800 text-gray-700 dark:text-gray-300"
+                  ? "bg-black text-white dark:bg-white dark:text-black hover:bg-gray-600"
+                  : "bg-white dark:bg-zinc-800 text-gray-700 dark:text-gray-300 "
               }`}
             >
               {cat}
@@ -69,6 +73,20 @@ export default function Community() {
               </div>
             </div>
           ))}
+        </div>
+
+        {/* 글쓰기 버튼 
+          로그인 한 사용자에게만 보이도록 하기
+        */}
+        <div className="flex justify-end">
+          <button
+            onClick={() => {
+              navigate("/newpost");
+            }}
+            className="px-4 py-2 mt-7 border rounded text-white bg-green-500 hover:bg-green-700"
+          >
+            글쓰기
+          </button>
         </div>
 
         {/* 페이지네이션 */}
