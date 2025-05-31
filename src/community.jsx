@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import Header from "./components/Header";
+import PostCard from "./components/PostCard";
 
 const categories = ["전체", "공지사항", "자유게시판", "유머게시판"];
 
@@ -50,28 +51,19 @@ export default function Community() {
 
         {/* 일반 게시글 목록 */}
         <div className="space-y-4">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div
+          {[1, 2, 3, 4, 5, 6, 7].map((i) => (
+            <PostCard
               key={i}
-              className="flex justify-between items-center border px-4 py-3 rounded dark:bg-zinc-800"
-            >
-              <div className="flex gap-3 items-center">
-                <div className="text-center">
-                  <button>👍</button>
-                  <div className="text-xs">추천수</div>
-                </div>
-                <div className="w-12 h-12 bg-gray-300 dark:bg-zinc-700 rounded-md" />
-                <div>
-                  <div className="font-semibold">글 제목</div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">
-                    게시판 / 닉네임 / 작성시간
-                  </div>
-                </div>
-              </div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">
-                [댓글수]
-              </div>
-            </div>
+              postId={i}
+              title={`글 제목 ${i}`}
+              thumbnail={null}
+              boardName="자유게시판"
+              nickname="김은별"
+              createdAt="2025.06.01"
+              views={123 + i}
+              comments={3 + i}
+              likes={i}
+            />
           ))}
         </div>
 

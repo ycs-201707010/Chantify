@@ -7,7 +7,7 @@ const menuItems = [
   { name: "일정", path: "/schedule" },
   { name: "순위", path: "/ranking" },
   { name: "뉴스", path: "/news" },
-  { name: "커뮤니티", path: "./community" },
+  { name: "커뮤니티", path: "/community" },
   { name: "배팅", path: "/betting" },
   { name: "상점", path: "/shop" },
   { name: "마이페이지", path: "/mypage" },
