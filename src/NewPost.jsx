@@ -9,10 +9,13 @@ export default function NewPost() {
   const [title, setTitle] = useState("");
   const [error, setError] = useState("");
 
+  // 일반 사용자는 공지사항 게시판에 작성할 수 없게 구분하는 용도
+  const userId = sessionStorage.getItem("userId") || ""; // 예외 방지
+
   // 페이지 이동
   const navigate = useNavigate();
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const content = editorRef.current.getInstance().getHTML();
 
     if (!title.trim()) {
@@ -28,8 +31,31 @@ export default function NewPost() {
       return;
     }
 
-    setError("");
-    alert("제출됨! 서버 연동은 나중에");
+    try {
+      const res = await fetch("/checksum/write_post.jsp", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          board_id: category, // 숫자로 넘겨야 함
+          title,
+          content,
+          user_id: localStorage.getItem("user_id"), // 예: 'root'
+        }),
+      });
+
+      const result = await res.json();
+
+      if (result.success) {
+        navigate(`/post/${result.post_id}`); // 글 작성 성공 시 상세 페이지로 이동
+      } else {
+        setError("글 작성에 실패했습니다.");
+      }
+    } catch (err) {
+      console.error("서버 오류:", err);
+      setError("서버 오류가 발생했습니다.");
+    }
   };
 
   const handleImageUpload = async (blob, callback) => {
@@ -46,6 +72,13 @@ export default function NewPost() {
     }
   }, []);
 
+  useEffect(() => {
+    // 혹시나 url 입력 등으로 일반 사용자가 공지사항에 글을 쓰려는 행위 방지
+    if (userId !== "root" && category === "공지") {
+      setCategory("자유");
+    }
+  }, [userId, category]);
+
   return (
     <div className="max-w-7xl mx-auto mt-10 p-6 bg-white dark:bg-gray-900 rounded-xl shadow">
       <h2 className="text-2xl font-bold mb-4 dark:text-white">글쓰기</h2>
@@ -56,7 +89,7 @@ export default function NewPost() {
         onChange={(e) => setCategory(e.target.value)}
         className="w-full p-2 mb-4 border rounded dark:bg-gray-700 dark:text-white"
       >
-        <option value="공지">공지</option>
+        {userId === "root" && <option value="공지">공지</option>}
         <option value="자유">자유</option>
         <option value="유머">유머</option>
       </select>
