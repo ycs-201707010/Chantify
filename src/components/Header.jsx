@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { useRef, useEffect, useState } from "react";
+import { useAuth } from "../contexts/AuthContext";
 
 const menuItems = [
   { name: "홈", path: "/" },
@@ -19,7 +20,7 @@ export default function Header() {
   const navigate = useNavigate();
 
   // 상단에 추가
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // 임시 로그인 상태
+  const { isLoggedIn, userId, logout } = useAuth();
   const profileImgUrl = "https://avatars.githubusercontent.com/u/9919?v=4"; // 더미 이미지
 
   // setProfileImageUrl : 사용자 프로필 사진 불러와서 설정하는?메서드
@@ -50,47 +51,6 @@ export default function Header() {
       document.removeEventListener("click", handleClickOutside);
     };
   }, [isOpen]); // 💡 isOpen이 바뀔 때마다 이 effect가 다시 실행됨
-
-  // 세션 조회용 useEffect
-  useEffect(() => {
-    const checkLogin = async () => {
-      try {
-        const res = await fetch("/checksum/check-session.jsp");
-        const data = await res.json();
-
-        if (data.loggedIn) {
-          setIsLoggedIn(true);
-          // 필요 시 user_id를 활용해 추가 프로필 정보 요청 가능
-          // setProfileImageUrl(
-          //   "https://avatars.githubusercontent.com/u/9919?v=4"
-          // ); // 예시
-        } else {
-          setIsLoggedIn(false);
-        }
-      } catch (err) {
-        console.error("세션 확인 실패", err);
-      }
-    };
-
-    checkLogin();
-  }, []);
-
-  // 로그아웃 핸들
-  const handleLogout = async () => {
-    try {
-      const res = await fetch("/checksum/logout.jsp");
-      const data = await res.json();
-      if (data.success) {
-        setIsLoggedIn(false); // 상태 초기화
-        navigate("/"); // 메인 화면으로 이동
-      } else {
-        alert("로그아웃 실패: " + data.error);
-      }
-    } catch (err) {
-      console.error("로그아웃 에러", err);
-      alert("서버 오류로 로그아웃에 실패했습니다.");
-    }
-  };
 
   return (
     <header
@@ -174,7 +134,7 @@ export default function Header() {
               />
 
               <Link
-                onClick={handleLogout}
+                onClick={logout}
                 className="text-red-500 hover:text-red-700 transition"
               >
                 로그아웃

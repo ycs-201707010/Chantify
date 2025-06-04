@@ -2,15 +2,17 @@ import { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Editor } from "@toast-ui/react-editor";
 import "@toast-ui/editor/dist/toastui-editor.css";
+import { useAuth } from "./contexts/AuthContext";
 
 export default function NewPost() {
   const editorRef = useRef();
-  const [category, setCategory] = useState("자유");
+  const [boardList, setBoardList] = useState([]);
+  const [selectedBoard, setSelectedBoard] = useState("");
   const [title, setTitle] = useState("");
   const [error, setError] = useState("");
 
   // 일반 사용자는 공지사항 게시판에 작성할 수 없게 구분하는 용도
-  const userId = sessionStorage.getItem("userId") || ""; // 예외 방지
+  const { userId } = useAuth();
 
   // 페이지 이동
   const navigate = useNavigate();
@@ -38,10 +40,10 @@ export default function NewPost() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          board_id: category, // 숫자로 넘겨야 함
+          board_id: Number(selectedBoard), // 숫자로 넘겨야 함
           title,
           content,
-          user_id: localStorage.getItem("user_id"), // 예: 'root'
+          user_id: userId, // 예: 'root'
         }),
       });
 
@@ -73,11 +75,26 @@ export default function NewPost() {
   }, []);
 
   useEffect(() => {
-    // 혹시나 url 입력 등으로 일반 사용자가 공지사항에 글을 쓰려는 행위 방지
-    if (userId !== "root" && category === "공지") {
-      setCategory("자유");
-    }
-  }, [userId, category]);
+    // 게시판 목록 불러오는 메서드
+    const fetchBoards = async () => {
+      try {
+        const res = await fetch("/checksum/get_board_list.jsp");
+        const data = await res.json();
+        const allowedBoards =
+          userId === "root"
+            ? data
+            : data.filter((board) => board.name !== "공지사항");
+        console.log(allowedBoards);
+        setBoardList(allowedBoards);
+        if (allowedBoards.length > 0) {
+          setSelectedBoard(allowedBoards[0].board_id);
+        }
+      } catch (err) {
+        console.error("게시판 목록을 불러오는 데 실패했습니다", err);
+      }
+    };
+    fetchBoards();
+  }, [userId]);
 
   return (
     <div className="max-w-7xl mx-auto mt-10 p-6 bg-white dark:bg-gray-900 rounded-xl shadow">
@@ -85,13 +102,15 @@ export default function NewPost() {
 
       {/* 게시판 선택 */}
       <select
-        value={category}
-        onChange={(e) => setCategory(e.target.value)}
+        value={selectedBoard}
+        onChange={(e) => setSelectedBoard(e.target.value)}
         className="w-full p-2 mb-4 border rounded dark:bg-gray-700 dark:text-white"
       >
-        {userId === "root" && <option value="공지">공지</option>}
-        <option value="자유">자유</option>
-        <option value="유머">유머</option>
+        {boardList.map((board) => (
+          <option key={board.id} value={board.id}>
+            {board.name}
+          </option>
+        ))}
       </select>
 
       {/* 제목 입력 */}

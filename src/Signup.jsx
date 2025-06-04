@@ -17,6 +17,7 @@ export default function Signup() {
     username: false,
     nickname: false,
     email: false,
+    emailCode: false,
     password: false,
     passwordMatch: false,
   });
@@ -68,12 +69,14 @@ export default function Signup() {
     }
   };
 
-  // 중복 확인 메서드
+  // 아이디/닉네임 중복 확인 메서드
   const checkDuplicate = async (field) => {
     const value = form[field];
     if (!value) return;
 
-    const res = await fetch(`/api/check?type=${field}&value=${value}`);
+    const res = await fetch(
+      `/checksum/check-duplicate.jsp?type=${field}&value=${value}`
+    );
     const data = await res.json();
 
     if (data.exists) {
@@ -86,12 +89,69 @@ export default function Signup() {
     }
   };
 
+  // 이메일 인증 코드 발송 메서드
+  const handleSendCode = async () => {
+    if (!validateEmail(form.email)) {
+      alert("유효한 이메일 주소를 입력해주세요.");
+      return;
+    }
+
+    try {
+      const res = await fetch("/checksum/send_email_code.jsp", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ email: form.email }),
+      });
+
+      const result = await res.json();
+      if (result.success) {
+        alert(
+          "인증 코드가 이메일로 전송되었습니다. 5분 내로 인증을 완료해주세요."
+        );
+      } else {
+        alert("전송 실패: " + result.error);
+      }
+    } catch (err) {
+      alert("서버 통신 오류");
+    }
+  };
+
+  // ✅ 인증코드 입력 후 확인 버튼 추가
+  const handleVerifyCode = async () => {
+    if (!/^\d{6}$/.test(form.emailCode)) {
+      alert("6자리 숫자 코드를 입력하세요.");
+      return;
+    }
+
+    try {
+      const res = await fetch("/checksum/verify_email_code.jsp", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          email: form.email,
+          code: form.emailCode,
+        }),
+      });
+
+      const result = await res.json();
+      if (result.verified) {
+        alert("이메일 인증 성공!");
+        setValid((prev) => ({ ...prev, email: true, emailCode: true }));
+      } else {
+        alert("인증코드가 일치하지 않습니다.");
+      }
+    } catch (err) {
+      alert("서버 오류");
+    }
+  };
+
   /// 모든 조건이 완료되면 회원가입 버튼 활성화.
   const isAllValid =
     Object.values(valid).every((v) => v) &&
     form.username &&
     form.nickname &&
     form.email &&
+    form.emailCode &&
     form.password &&
     form.passwordCheck;
 
@@ -112,6 +172,14 @@ export default function Signup() {
 
       if (result.success) {
         alert("성공적으로 회원가입이 완료되었습니다!");
+        setForm({
+          username: "",
+          password: "",
+          passwordCheck: "",
+          nickname: "",
+          email: "",
+          emailCode: "",
+        });
         navigate("/login");
       } else {
         alert("회원 가입에 실패하였습니다. : " + result.error);
@@ -239,6 +307,7 @@ export default function Signup() {
                 ? "bg-blue-600 hover:bg-blue-700 text-white"
                 : "bg-gray-400 cursor-not-allowed"
             }`}
+            onClick={() => checkDuplicate("nickname")}
           >
             중복확인
           </button>
@@ -266,6 +335,7 @@ export default function Signup() {
           <button
             type="button"
             className="bg-blue-500 text-white px-3 py-1 rounded text-sm"
+            onClick={handleSendCode}
           >
             인증코드 발송
           </button>
@@ -282,13 +352,27 @@ export default function Signup() {
         <label className="block mb-1 font-semibold text-sm text-gray-700 dark:text-gray-200">
           인증코드
         </label>
-        <input
-          type="text"
-          name="emailCode"
-          value={form.emailCode}
-          onChange={handleChange}
-          className="w-full border px-3 py-2 rounded dark:bg-zinc-700 dark:text-white"
-        />
+        <div className="flex gap-2">
+          <input
+            type="text"
+            name="emailCode"
+            value={form.emailCode}
+            onChange={handleChange}
+            className="w-full border px-3 py-2 rounded dark:bg-zinc-700 dark:text-white"
+          />
+          <button
+            type="button"
+            className={`px-3 py-1 rounded text-sm dark:bg-zinc-600 dark:text-white ${
+              form.emailCode.length > 0
+                ? "bg-blue-600 hover:bg-blue-700 text-white"
+                : "bg-gray-400 cursor-not-allowed"
+            }`}
+            disabled={form.emailCode.length === 0}
+            onClick={handleVerifyCode}
+          >
+            인증코드 확인
+          </button>
+        </div>
       </div>
 
       {/* 제출 버튼 */}

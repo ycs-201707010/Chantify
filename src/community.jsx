@@ -3,29 +3,87 @@ import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import Header from "./components/Header";
 import PostCard from "./components/PostCard";
-
-const categories = ["전체", "공지사항", "자유게시판", "유머게시판"];
+import { useAuth } from "./contexts/AuthContext";
 
 export default function Community() {
+  const [boardMap, setBoardMap] = useState({});
+  const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("전체");
+
   const [posts, setPosts] = useState([]);
+  const [notices, setNotices] = useState([]);
+
+  const [totalPages, setTotalPages] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const { isLoggedIn, userId, logout } = useAuth();
+
+  const pageSize = 10;
 
   // 페이지 이동
   const navigate = useNavigate();
 
   // JSP를 통해 데이터를 받아오는 구조
+  // 게시판 목록을 불러오는 메서드
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch("/checksum/get_board_list.jsp");
+        const data = await res.json();
+
+        // boardMap 생성
+        const map = {};
+        data.forEach((item) => {
+          map[item.name] = item.id;
+        });
+
+        setCategories(["전체", ...data.map((d) => d.name)]);
+        setBoardMap(map);
+      } catch (err) {
+        console.error("게시판 목록을 불러오는 데 실패했습니다", err);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  // 글 목록을 불러오는 메서드. (추후 게시판 개별 선택에 맞게 로직 수정)
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const res = await fetch("/checksum/community.jsp");
+        const boardId = boardMap[selectedCategory];
+        const boardQuery =
+          selectedCategory === "전체" || !boardId ? "" : `&boardId=${boardId}`;
+
+        const query = `?page=${currentPage}&pageSize=${pageSize}${boardQuery}`;
+        const res = await fetch(`/checksum/get_post_list.jsp${query}`);
         const data = await res.json();
-        setPosts(data);
+
+        setPosts(data.posts);
+        setTotalPages(Math.ceil(data.totalCount / pageSize)); // 페이지네이션 용도
       } catch (err) {
         console.error("게시글을 불러오는 데 실패했습니다", err);
       }
     };
 
     fetchPosts();
+  }, [currentPage, selectedCategory, boardMap]);
+
+  // 불러온 게시판
+
+  // 공지사항을 불러오는 메서드.
+  useEffect(() => {
+    const fetchNotices = async () => {
+      try {
+        const res = await fetch("/checksum/get_notices.jsp");
+        const data = await res.json();
+        setNotices(data);
+      } catch (err) {
+        console.error("공지사항을 불러오는 데 실패했습니다", err);
+      }
+    };
+
+    fetchNotices();
   }, []);
 
   return (
@@ -38,7 +96,10 @@ export default function Community() {
           {categories.map((cat) => (
             <button
               key={cat}
-              onClick={() => setSelectedCategory(cat)}
+              onClick={() => {
+                setSelectedCategory(cat);
+                setCurrentPage(1); // ✅ 페이지 초기화
+              }}
               className={`px-4 py-1 rounded border ${
                 selectedCategory === cat
                   ? "bg-black text-white dark:bg-white dark:text-black hover:bg-gray-600"
@@ -52,15 +113,15 @@ export default function Community() {
 
         {/* 공지사항 */}
         <div className="space-y-2 mb-6">
-          {[1, 2].map((i) => (
+          {notices.map((notice) => (
             <div
-              key={i}
+              key={notice.post_id}
               className="flex justify-between items-center border px-4 py-2 rounded text-red-600 dark:text-red-400"
             >
               <span>
-                <strong>공지사항</strong> | 공지제목
+                <strong>공지사항</strong> | {notice.title}
               </span>
-              <span className="text-sm text-gray-400">날짜</span>
+              <span className="text-sm text-gray-400">{notice.created_at}</span>
             </div>
           ))}
         </div>
@@ -79,7 +140,7 @@ export default function Community() {
                 title={post.title}
                 thumbnail={post.thumbnail || null}
                 boardName={post.board_name}
-                nickname={post.username}
+                nickname={post.nickname}
                 createdAt={post.created_at}
                 views={post.views}
                 comments={post.comments}
@@ -95,7 +156,12 @@ export default function Community() {
         <div className="flex justify-end">
           <button
             onClick={() => {
-              navigate("/newpost");
+              if (!isLoggedIn) {
+                alert("로그인 후 이용해주세요.");
+                navigate("/login");
+              } else {
+                navigate("/newpost");
+              }
             }}
             className="px-4 py-2 mt-7 border rounded text-white bg-green-500 hover:bg-green-700"
           >
@@ -105,38 +171,31 @@ export default function Community() {
 
         {/* 페이지네이션 */}
         <div className="flex justify-center mt-8 space-x-2">
-          {posts.length === 0 ? (
-            <></>
-          ) : (
-            posts.map((post) => (
-              <PostCard
-                key={post.post_id}
-                postId={post.post_id}
-                title={post.title}
-                thumbnail={post.thumbnail || null}
-                boardName={post.board_name}
-                nickname={post.username}
-                createdAt={post.created_at}
-                views={post.views}
-                comments={post.comments}
-                likes={post.upvotes}
-              />
-            ))
-          )}
-          <button className="px-3 py-1 border rounded">이전</button>
-          {[1, 2, 3, 4, 5].map((num) => (
+          <button
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            className="px-3 py-1 border rounded"
+          >
+            이전
+          </button>
+          {[...Array(totalPages).keys()].map((i) => (
             <button
-              key={num}
+              key={i + 1}
+              onClick={() => setCurrentPage(i + 1)}
               className={`px-3 py-1 border rounded ${
-                num === 1
+                currentPage === i + 1
                   ? "bg-black text-white dark:bg-white dark:text-black"
                   : ""
               }`}
             >
-              {num}
+              {i + 1}
             </button>
           ))}
-          <button className="px-3 py-1 border rounded">다음</button>
+          <button
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            className="px-3 py-1 border rounded"
+          >
+            다음
+          </button>
         </div>
       </main>
     </div>

@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
+import { useAuth } from "./contexts/AuthContext";
 
 export default function Login() {
   const [form, setForm] = useState({ username: "", password: "" });
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const { fetchSession } = useAuth();
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -22,12 +24,16 @@ export default function Login() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
+      credentials: "include", // ★ 세션 유지 핵심!
     });
 
     const data = await res.json();
+
     if (data.success) {
-      navigate("/"); // 로그인 성공 시 메인으로 이동
+      await fetchSession(); // 로그인 상태 즉시 반영
+      navigate("/"); // 세션이 확인되면 이동
     } else {
+      alert("로그인 실패 : " + data.message);
       setError(data.message || "로그인 실패");
     }
   };
