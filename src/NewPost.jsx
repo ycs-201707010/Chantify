@@ -17,7 +17,56 @@ export default function NewPost() {
   // 페이지 이동
   const navigate = useNavigate();
 
+  // 이미지가 업로드 되는 로직
+  const handleImageUpload = async (blob, callback) => {
+    const formData = new FormData();
+    formData.append("image", blob); // blob은 업로드된 이미지 파일
+
+    try {
+      const res = await fetch("/checksum/upload_editor_image.jsp", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await res.json();
+
+      if (result.success) {
+        // 서버에서 반환한 실제 이미지 URL을 에디터에 삽입
+        callback(result.url, "이미지 설명");
+      } else {
+        alert("이미지 업로드 실패: " + result.error);
+      }
+    } catch (err) {
+      console.error("이미지 업로드 오류:", err);
+      alert("서버 오류로 이미지 업로드 실패");
+    }
+  };
+
+  // const handleImageUpload = async (blob, callback) => {
+  //   const formData = new FormData();
+  //   formData.append("image", blob);
+
+  //   try {
+  //     const res = await fetch("/checksum/upload_temp_image.jsp", {
+  //       method: "POST",
+  //       body: formData,
+  //     });
+
+  //     const result = await res.json();
+  //     if (result.success) {
+  //       callback(result.url, "이미지 설명"); // 임시 이미지 URL 삽입
+  //     } else {
+  //       alert("이미지 업로드 실패: " + result.error);
+  //     }
+  //   } catch (err) {
+  //     console.error("임시 이미지 업로드 오류:", err);
+  //     alert("서버 오류로 이미지 업로드 실패");
+  //   }
+  // };
+
+  // 글쓰기 확정 시
   const handleSubmit = async () => {
+    console.log(Number(selectedBoard));
     const content = editorRef.current.getInstance().getHTML();
 
     if (!title.trim()) {
@@ -33,24 +82,51 @@ export default function NewPost() {
       return;
     }
 
+    // // 1. 에디터 내용에서 이미지 src 추출
+    // const tempImageUrls = Array.from(
+    //   content.matchAll(/<img[^>]+src="([^">]+\/temp\/[^">]+)"/g)
+    // ).map((match) => match[1]);
+
+    // let updatedContent = content;
+    // try {
+    //   const res = await fetch("/checksum/finalize_images.jsp", {
+    //     method: "POST",
+    //     headers: { "Content-Type": "application/json" },
+    //     body: JSON.stringify({ tempImageUrls }),
+    //   });
+
+    //   const result = await res.json();
+    //   if (result.success) {
+    //     // 서버가 이동된 경로로 매핑을 반환했다고 가정
+    //     for (const [tempUrl, newUrl] of Object.entries(result.mapping)) {
+    //       updatedContent = updatedContent.replaceAll(tempUrl, newUrl);
+    //     }
+    //   } else {
+    //     setError("이미지 정리 중 오류 발생");
+    //     return;
+    //   }
+    // } catch (err) {
+    //   console.error("이미지 정리 실패:", err);
+    //   setError("이미지 정리 중 서버 오류");
+    //   return;
+    // }
+
+    // 3. 글쓰기 요청 (이미지 경로가 정리된 content 사용)
     try {
       const res = await fetch("/checksum/write_post.jsp", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          board_id: Number(selectedBoard), // 숫자로 넘겨야 함
+          board_id: Number(selectedBoard),
           title,
           content,
-          user_id: userId, // 예: 'root'
+          user_id: userId,
         }),
       });
 
       const result = await res.json();
-
       if (result.success) {
-        navigate(`/post/${result.post_id}`); // 글 작성 성공 시 상세 페이지로 이동
+        navigate(`/postview/${result.post_id}`);
       } else {
         setError("글 작성에 실패했습니다.");
       }
@@ -58,12 +134,6 @@ export default function NewPost() {
       console.error("서버 오류:", err);
       setError("서버 오류가 발생했습니다.");
     }
-  };
-
-  const handleImageUpload = async (blob, callback) => {
-    const tempUrl = URL.createObjectURL(blob);
-    callback(tempUrl, "업로드 이미지");
-    // 실제 구현 시 FormData 전송 + 서버에 저장 + 정식 URL 반환 필요
   };
 
   useEffect(() => {
@@ -94,6 +164,8 @@ export default function NewPost() {
       }
     };
     fetchBoards();
+
+    /** selectedBoard 번호 사전에 지정하는 로직 추가 필요 */
   }, [userId]);
 
   return (

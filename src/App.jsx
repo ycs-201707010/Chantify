@@ -22,7 +22,7 @@ export default function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/community" element={<Community />} />
           <Route path="/newpost" element={<NewPost />} />
-          <Route path="/postview" element={<PostView />} />
+          <Route path="/postview/:postId" element={<PostView />} />
           <Route path="/mypage" element={<MyPage />} />
         </Routes>
       </BrowserRouter>

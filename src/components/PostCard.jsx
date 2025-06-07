@@ -29,7 +29,14 @@ export default function PostCard({
           ) : null}
         </div>
         <div>
-          <div className="font-semibold">{title}</div>
+          <Link to={`/postview/${postId}`}>
+            <div
+              onClick={() => console.log("🔁 이동 시도됨")}
+              className="font-semibold"
+            >
+              {title}
+            </div>
+          </Link>
           <div className="text-sm text-gray-500 dark:text-gray-400">
             {boardName} / {nickname} / {createdAt}
           </div>
