@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import DOMPurify from "dompurify";
+import { useAuth } from "./contexts/AuthContext";
 
 import PostComment from "./components/PostComment";
 
@@ -12,6 +13,8 @@ export default function PostView() {
   const { postId } = useParams("postId");
   const [post, setPost] = useState(null);
   const [error, setError] = useState("");
+  const [userVote, setUserVote] = useState({ up: false, down: false });
+  const { isLoggedIn, userId } = useAuth();
 
   // 페이지 이동
   const navigate = useNavigate();
@@ -34,6 +37,12 @@ export default function PostView() {
 
     const fetchPost = async () => {
       try {
+        // 조회수 증가 요청
+        const res_view = await fetch(
+          `/checksum/increase_view.jsp?postId=${postId}`
+        );
+
+        // 조회수 증가 요청 종료 수 게시글 조회.
         const res = await fetch(`/checksum/get_post.jsp?postId=${postId}`);
         const data = await res.json();
         console.log("✅ fetch 결과:", data);
@@ -55,6 +64,74 @@ export default function PostView() {
 
     console.log(post);
   }, [postId]);
+
+  // 개추/비추
+  const handleVote = async (type) => {
+    if (userVote[type]) {
+      alert(`이미 ${type === "up" ? "추천" : "비추천"}하셨습니다.`);
+      return;
+    }
+
+    try {
+      const res = await fetch("/checksum/vote_post.jsp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          post_id: post.post_id,
+          username: userId, // 현재 로그인한 사용자
+          vote_type: type,
+        }),
+      });
+
+      const result = await res.json();
+      if (result.success) {
+        setUserVote((prev) => ({ ...prev, [type]: true }));
+        if (type === "up") {
+          setPost((prev) => ({ ...prev, upvotes: prev.upvotes + 1 }));
+        } else {
+          setPost((prev) => ({ ...prev, downvotes: prev.downvotes + 1 }));
+        }
+      } else {
+        alert(result.message || "투표에 실패했습니다.");
+      }
+    } catch (err) {
+      console.error("투표 오류:", err);
+    }
+  };
+
+  // 게시글 삭제
+  const handleDelete = async () => {
+    const confirmDelete = window.confirm("정말 이 글을 삭제하시겠습니까?");
+    if (!confirmDelete) return;
+
+    try {
+      const res = await fetch(`/checksum/delete_post.jsp?postId=${postId}`, {
+        method: "POST",
+      });
+      const result = await res.json();
+
+      if (result.success) {
+        alert("글이 성공적으로 삭제되었습니다.");
+        navigate("/community");
+      } else {
+        alert("삭제에 실패했습니다: " + result.error);
+      }
+    } catch (err) {
+      console.error("삭제 중 오류 발생:", err);
+      alert("서버 오류로 삭제에 실패했습니다.");
+    }
+  };
+
+  // URL 복사
+  const handleCopyUrl = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      alert("URL이 복사되었습니다!");
+    } catch (err) {
+      console.error("URL 복사 실패:", err);
+      alert("URL 복사에 실패했습니다.");
+    }
+  };
 
   // const sanitizedContent = DOMPurify.sanitize(post.content);
   // console.log("Sanitized:", sanitizedContent);
@@ -86,9 +163,12 @@ export default function PostView() {
                 {post.username} | {post.created_at} | {post.board_name}
               </p>
               <p className="">
-                조회 {post.views} | 추천 {/*post.recommend_count*/} |{" "}
-                <a href="" className="text-gray-500 dark:text-gray-400">
-                  {/* 댓글 {post.comment_count} */}
+                조회 {post.views} | 추천 {post.votes} |{" "}
+                <a
+                  href="#commentList"
+                  className="text-gray-500 dark:text-gray-400"
+                >
+                  댓글 {post.comment_count}
                 </a>
               </p>
             </div>
@@ -105,21 +185,30 @@ export default function PostView() {
         <div className="w-[100%] flex flex-col items-center justify-center mt-6">
           <div className="flex mb-3">
             <div className="flex gap-4 items-center mr-2">
-              <p>0</p>
-              <button className="px-4 py-3 border-[2px] border-blue-600 rounded-md">
+              <p>{post.upvotes}</p>
+              <button
+                onClick={() => handleVote("up")}
+                className="px-4 py-3 border-[2px] bg-blue-600 hover:bg-blue-800 border-blue-400 text-white rounded-md"
+              >
                 추천
               </button>
             </div>
             <div className="flex gap-4 items-center ml-2">
-              <button className="px-4 py-3 border-[2px] border-red-600 rounded-md">
+              <button
+                onClick={() => handleVote("down")}
+                className="px-4 py-3 border-[2px] bg-red-600 hover:bg-red-800 border-red-400 text-white rounded-md"
+              >
                 비추
               </button>
-              <p>0</p>
+              <p>{post.downvotes}</p>
             </div>
           </div>
 
           <div>
-            <button className="px-2 py-1 border-[2px] border-gray-700 rounded-md mr-2">
+            <button
+              onClick={handleCopyUrl}
+              className="px-2 py-1 border-[2px] border-gray-700 rounded-md mr-2"
+            >
               URL 복사
             </button>
             <button className="px-2 py-1 border-[2px] border-gray-700 rounded-md">
@@ -128,10 +217,49 @@ export default function PostView() {
           </div>
         </div>
 
+        {/** 수정/삭제/글쓰기 버튼 */}
+        <div className="w-[100%] flex justify-end">
+          {userId === post.user_id && (
+            <div className="flex justify-end gap-2 mt-4 mr-2">
+              {/* 수정 버튼 */}
+              <button
+                onClick={() => navigate(`/editpost/${post.post_id}`)}
+                className="px-4 py-2 mt-7 border rounded text-white bg-zinc-500 hover:bg-zinc-700"
+              >
+                수정
+              </button>
+
+              {/* 삭제 버튼 */}
+              <button
+                onClick={handleDelete}
+                className="px-4 py-2 mt-7 border rounded text-white bg-zinc-500 hover:bg-zinc-700"
+              >
+                삭제
+              </button>
+            </div>
+          )}
+
+          <button
+            onClick={() => {
+              if (!isLoggedIn) {
+                alert("로그인 후 이용해주세요.");
+                navigate("/login");
+              } else {
+                navigate("/newpost");
+              }
+            }}
+            className="px-4 py-2 mt-11 border rounded text-white bg-green-500 hover:bg-green-700"
+          >
+            글쓰기
+          </button>
+        </div>
+
         {/** 프로필 */}
 
         {/** 댓글 창 */}
-        <PostComment postId={postId} />
+        <div id="commentList">
+          <PostComment postId={postId} />
+        </div>
       </main>
     </div>
   );

@@ -1,4 +1,9 @@
+import { useNavigate } from "react-router-dom";
+
 export default function MemberProfile() {
+  // 페이지 이동
+  const navigate = useNavigate();
+
   return (
     <div
       className="max-w-[975px] h-[200px] bg-black bg-cover bg-center relative
@@ -6,7 +11,10 @@ export default function MemberProfile() {
       style={{ backgroundImage: `url()` }}
     >
       {/* 편집하기 버튼은 본인 계정 프로필 조회 시만 */}
-      <a className="absolute right-0 top-0 mr-2 mt-2 text-white" href="">
+      <a
+        onClick={() => navigate("/editprofile")}
+        className="absolute right-0 top-0 mr-2 mt-2 text-white"
+      >
         편집하기
       </a>
 

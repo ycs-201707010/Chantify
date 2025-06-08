@@ -143,8 +143,8 @@ export default function Community() {
                 nickname={post.nickname}
                 createdAt={post.created_at}
                 views={post.views}
-                comments={post.comments}
-                likes={post.upvotes}
+                comment_count={post.comment_count}
+                votes={post.recommend_count}
               />
             ))
           )}

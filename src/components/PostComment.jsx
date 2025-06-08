@@ -1,11 +1,18 @@
 import { useEffect, useState } from "react";
+import { useAuth } from "../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 export default function PostComment({ postId }) {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [replyTo, setReplyTo] = useState(null); // 대댓글용 parent_id
   const [replyContent, setReplyContent] = useState("");
+  const { isLoggedIn, userId } = useAuth();
 
+  // 페이지 이동
+  const navigate = useNavigate();
+
+  // 댓글 불러오기
   useEffect(() => {
     const fetchComments = async () => {
       try {
@@ -20,14 +27,33 @@ export default function PostComment({ postId }) {
     if (postId) fetchComments();
   }, [postId]);
 
+  // 불러온 댓글의 합계 계산
+  const countTotalComments = (comments) => {
+    let count = 0;
+    for (const c of comments) {
+      count += 1;
+      if (c.children && c.children.length > 0) {
+        count += countTotalComments(c.children);
+      }
+    }
+    return count;
+  };
+
+  // 댓글 작성하기
   const handleSubmit = async () => {
     if (!newComment.trim()) return;
 
     try {
+      console.log("댓글 작성 진입");
+
       const res = await fetch("/checksum/write_comment.jsp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ post_id: postId, content: newComment }),
+        body: JSON.stringify({
+          post_id: postId,
+          content: newComment,
+          username: userId,
+        }),
       });
       const result = await res.json();
 
@@ -40,10 +66,13 @@ export default function PostComment({ postId }) {
     }
   };
 
+  // 답글 작성하기
   const handleReplySubmit = async (parentId) => {
     if (!replyContent.trim()) return;
 
     try {
+      console.log("답글 작성 진입");
+
       const res = await fetch("/checksum/write_comment.jsp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -51,6 +80,7 @@ export default function PostComment({ postId }) {
           post_id: postId,
           parent_id: parentId,
           content: replyContent,
+          username: userId,
         }),
       });
       const result = await res.json();
@@ -73,6 +103,7 @@ export default function PostComment({ postId }) {
     }
   };
 
+  // 불러온 댓글을 렌더링
   const renderComment = (comment, isChild = false) => (
     <li
       key={comment.comment_id}
@@ -86,6 +117,7 @@ export default function PostComment({ postId }) {
       <div className="text-gray-500 text-xs mt-1">
         {comment.username} | {comment.created_at}
       </div>
+
       <button
         onClick={() => setReplyTo(comment.comment_id)}
         className="text-xs text-blue-500 mt-2"
@@ -123,7 +155,7 @@ export default function PostComment({ postId }) {
   return (
     <div className="mt-12">
       <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
-        댓글 {comments.length}
+        댓글 {countTotalComments(comments)}
       </h3>
 
       <ul className="space-y-3 mb-6">
@@ -135,6 +167,12 @@ export default function PostComment({ postId }) {
           type="text"
           placeholder="댓글을 입력하세요"
           value={newComment}
+          onClick={() => {
+            if (!isLoggedIn) {
+              alert("로그인 후 이용해주세요.");
+              navigate("/login");
+            }
+          }}
           onChange={(e) => setNewComment(e.target.value)}
           className="flex-1 px-3 py-2 border rounded dark:bg-zinc-800 dark:text-white"
         />

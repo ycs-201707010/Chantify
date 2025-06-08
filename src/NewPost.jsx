@@ -66,7 +66,7 @@ export default function NewPost() {
 
   // 글쓰기 확정 시
   const handleSubmit = async () => {
-    console.log(Number(selectedBoard));
+    console.log(selectedBoard);
     const content = editorRef.current.getInstance().getHTML();
 
     if (!title.trim()) {
@@ -157,11 +157,13 @@ export default function NewPost() {
         console.log(allowedBoards);
         setBoardList(allowedBoards);
         if (allowedBoards.length > 0) {
-          setSelectedBoard(allowedBoards[0].board_id);
+          setSelectedBoard(allowedBoards[0].id);
         }
       } catch (err) {
         console.error("게시판 목록을 불러오는 데 실패했습니다", err);
       }
+
+      console.log("날아라 슈퍼보드 : " + selectedBoard);
     };
     fetchBoards();
 
