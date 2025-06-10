@@ -75,6 +75,26 @@ export default function AdminPrizes() {
     }
   };
 
+  // 경품 삭제
+  const handleDeletePrize = async (prizeId) => {
+    const ok = window.confirm("정말 이 경품을 삭제하시겠습니까?");
+    if (!ok) return;
+
+    const res = await fetch("/checksum/admin/delete_prize.jsp", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ prize_id: prizeId }),
+    });
+    const result = await res.json();
+
+    if (result.success) {
+      alert("삭제되었습니다.");
+      fetchPrizes();
+    } else {
+      alert("삭제 실패: " + result.error);
+    }
+  };
+
   return (
     <div className="p-6 text-white bg-gray-900 min-h-screen">
       <h1 className="text-2xl font-bold mb-6">🎁 경품 관리</h1>
@@ -98,6 +118,7 @@ export default function AdminPrizes() {
               <th className="py-3 px-4 text-left">제목</th>
               <th className="py-3 px-4 text-left">이미지</th>
               <th className="py-3 px-4 text-left">포인트</th>
+              <th className="py-3 px-4 text-left">관리</th>
             </tr>
           </thead>
           <tbody>
@@ -113,6 +134,15 @@ export default function AdminPrizes() {
                   />
                 </td>
                 <td className="py-2 px-4">{p.cost_point.toLocaleString()}P</td>
+
+                <td className="py-2 px-4">
+                  <button
+                    onClick={() => handleDeletePrize(p.prize_id)}
+                    className="text-red-400 hover:text-red-600"
+                  >
+                    🗑 삭제
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>

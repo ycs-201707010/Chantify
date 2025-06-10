@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "./contexts/AuthContext";
 import Header from "./components/Header";
 import PostCard from "./components/PostCard";
@@ -7,7 +7,7 @@ import PostCard from "./components/PostCard";
 import MemberProfile from "./components/MemberProfile";
 import { useDarkMode } from "./contexts/DarkModeContext";
 
-const categories = ["커뮤니티 활동", "배팅 내역", "환경 설정"];
+const categories = ["커뮤니티 활동", "응모 내역", "환경 설정"];
 
 // const boards = ["전체보기", "자유게시판", "유머게시판"];
 
@@ -21,7 +21,25 @@ export default function MyPage() {
   const [posts, setPosts] = useState([]);
   const [totalPages, setTotalPages] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
-  const { isLoggedIn, userId } = useAuth();
+  const { isLoggedIn, userId, logout } = useAuth();
+  const [point, setPoint] = useState(null);
+  const [entries, setEntries] = useState([]);
+
+  // 포인트 불러오기
+  useEffect(() => {
+    fetch(`/checksum/get_user_point.jsp`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setPoint(data.point);
+        } else {
+          console.error("포인트 불러오기 실패:", data.error);
+        }
+      })
+      .catch((err) => {
+        console.error("서버 에러:", err);
+      });
+  }, []);
 
   const pageSize = 10;
 
@@ -73,7 +91,26 @@ export default function MyPage() {
     fetchPosts();
   }, [currentPage, selectedBoard, boardMap]);
 
-  const dummyPoints = 25400;
+  useEffect(() => {
+    const fetchEntries = async () => {
+      try {
+        const res = await fetch("/checksum/get_user_entries.jsp", {
+          credentials: "include",
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          setEntries(data.entries); // entries: [{ id, title, point, date, status }]
+        } else {
+          console.error("응모 내역 불러오기 실패:", data.message);
+        }
+      } catch (err) {
+        console.error("서버 오류:", err);
+      }
+    };
+
+    fetchEntries();
+  }, []);
 
   const dummyBets = [
     {
@@ -179,7 +216,7 @@ export default function MyPage() {
                     onClick={() => setCurrentPage(i + 1)}
                     className={`px-3 py-1 border rounded ${
                       currentPage === i + 1
-                        ? "bg-black text-white dark:bg-white dark:text-black"
+                        ? "bg-green-600 hover:bg-green-800 text-white dark:border-white"
                         : ""
                     }`}
                   >
@@ -197,48 +234,55 @@ export default function MyPage() {
               </div>
             </>
           )}
-          {selectedCategory === "배팅 내역" && (
+          {selectedCategory === "응모 내역" && (
             <>
               <div className="flex justify-around">
                 <div className="flex flex-col text-center py-3">
                   <span className="text-zinc-600">현재 보유 포인트</span>
-                  <span className="text-5xl font-bold">{dummyPoints}</span>
+                  <span className="text-5xl font-bold">{point}</span>
                 </div>
 
                 <ul className="w-2/3 divide-y divide-gray-200 dark:divide-zinc-700">
-                  {dummyBets.map((bet) => (
-                    <li key={bet.id} className="py-3 flex justify-between">
-                      <div>
-                        <p className="text-sm text-gray-800 dark:text-gray-200 font-semibold">
-                          {bet.match} -{" "}
-                          <span className="text-blue-500">
-                            {bet.prediction}
-                          </span>
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          {bet.date}
-                        </p>
-                      </div>
-                      <div className="text-sm text-right">
-                        <p
-                          className={`font-bold ${
-                            bet.result === "적중"
-                              ? "text-green-600"
-                              : "text-red-500"
-                          }`}
-                        >
-                          {bet.result}
-                        </p>
-                        <p className="text-xs text-gray-500">{bet.point}P</p>
-                      </div>
+                  {entries.length === 0 ? (
+                    <li className="py-6 text-center text-gray-500 dark:text-gray-400">
+                      응모한 경품이 없습니다.
                     </li>
-                  ))}
+                  ) : (
+                    entries.map((entry) => (
+                      <li key={entry.id} className="py-3 flex justify-between">
+                        <div>
+                          <p className="text-sm text-gray-800 dark:text-gray-200 font-semibold">
+                            {entry.title}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {new Date(entry.date).toLocaleString()}
+                          </p>
+                        </div>
+                        <div className="text-sm text-right">
+                          <p
+                            className={`font-bold ${
+                              entry.status === "당첨"
+                                ? "text-green-600"
+                                : entry.status === "미당첨"
+                                ? "text-red-500"
+                                : "text-yellow-500"
+                            }`}
+                          >
+                            {entry.status}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {entry.point}P 사용
+                          </p>
+                        </div>
+                      </li>
+                    ))
+                  )}
                 </ul>
               </div>
             </>
           )}
           {selectedCategory === "환경 설정" && (
-            <div className="p-4 dark:text-white dark:bg-black">
+            <div className="p-4 dark:text-white dark:bg-zinc-800">
               {/* <h2 className="text-xl font-bold mb-4">설정</h2> */}
               <label className="flex items-center gap-2">
                 <input
@@ -248,6 +292,22 @@ export default function MyPage() {
                 />
                 다크 모드
               </label>
+              <button
+                onClick={() => navigate("/changepassword?from=mypage")}
+                className="w-[60%] mt-6 text-green-600 hover:text-white hover:bg-green-700 border border-green-600 dark:hover:bg-green-700 dark:hover:border-white transition"
+              >
+                비밀번호 변경
+              </button>
+
+              <button
+                onClick={() => {
+                  logout();
+                  navigate("/");
+                }}
+                className="w-[60%] mt-6 text-red-600 hover:text-white hover:bg-red-700 border border-red-600 dark:hover:bg-red-700 dark:hover:border-white transition"
+              >
+                로그아웃
+              </button>
             </div>
           )}
         </div>

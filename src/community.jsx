@@ -102,8 +102,8 @@ export default function Community() {
               }}
               className={`px-4 py-1 rounded border ${
                 selectedCategory === cat
-                  ? "bg-black text-white dark:bg-white dark:text-black hover:bg-gray-600"
-                  : "bg-white dark:bg-zinc-800 text-gray-700 dark:text-gray-300 "
+                  ? "bg-green-600 text-white dark:bg-white dark:text-black hover:bg-green-800"
+                  : "bg-white text-gray-700 dark:bg-zinc-800  dark:text-gray-300"
               }`}
             >
               {cat}
@@ -116,6 +116,9 @@ export default function Community() {
           {notices.map((notice) => (
             <div
               key={notice.post_id}
+              onClick={() => {
+                navigate(`/postview/${notice.post_id}`);
+              }}
               className="flex justify-between items-center border px-4 py-2 rounded text-red-600 dark:text-red-400"
             >
               <span>
@@ -183,7 +186,7 @@ export default function Community() {
               onClick={() => setCurrentPage(i + 1)}
               className={`px-3 py-1 border rounded ${
                 currentPage === i + 1
-                  ? "bg-black text-white dark:bg-white dark:text-black"
+                  ? "bg-green-600 hover:bg-green-800 text-white dark:border-white"
                   : ""
               }`}
             >

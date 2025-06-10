@@ -3,6 +3,10 @@ import "./App.css";
 import MainPage from "./MainPage";
 import Login from "./Login";
 import Signup from "./signup";
+import FindId from "./FindId";
+import ResetPassword from "./ResetPassword";
+import ChangePassword from "./ChangePassword";
+import News from "./News";
 import Community from "./community";
 import NewPost from "./NewPost";
 import EditPost from "./EditPost";
@@ -27,6 +31,10 @@ export default function App() {
             <Route path="/" element={<MainPage user={user} />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/findid" element={<FindId />} />
+            <Route path="/resetpassword" element={<ResetPassword />} />
+            <Route path="/changepassword" element={<ChangePassword />} />
+            <Route path="/news" element={<News />} />
             <Route path="/community" element={<Community />} />
             <Route path="/newpost" element={<NewPost />} />
             <Route path="/postview/:postId" element={<PostView />} />

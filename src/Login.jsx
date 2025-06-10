@@ -44,7 +44,7 @@ export default function Login() {
         <h2 className="text-2xl font-bold mb-6 text-center text-gray-800 dark:text-white">
           로그인
         </h2>
-        <div className="flex flex-col items-center gap-y-3 bg-gray-100 p-4 rounded-lg">
+        <div className="flex flex-col items-center gap-y-3 bg-gray-100 text-black dark:bg-zinc-700 dark:text-white  p-4 rounded-lg">
           <div className="w-md">
             <label
               htmlFor="input_username"
@@ -80,17 +80,17 @@ export default function Login() {
 
           <button
             type="submit"
-            className="w-full py-2 rounded text-white transition bg-green-500 hover:bg-green-700"
+            className="w-full py-2 rounded text-white transition bg-green-500 hover:bg-green-700 hover:dark:bg-green-700"
           >
             로그인
           </button>
         </div>
         <div className="flex justify-center text-sm text-gray-500 gap-2 mt-5">
-          <Link to="/find-username" className="hover:underline text-gray-500">
+          <Link to="/findid" className="hover:underline text-gray-500">
             아이디 찾기
           </Link>
           <span className="text-gray-300">|</span>
-          <Link to="/find-password" className="hover:underline text-gray-500">
+          <Link to="/resetpassword" className="hover:underline text-gray-500">
             비밀번호 찾기
           </Link>
           <span className="text-gray-300">|</span>

@@ -5,11 +5,10 @@ import { useAuth } from "../contexts/AuthContext";
 
 const menuItems = [
   { name: "홈", path: "/" },
-  { name: "일정", path: "/schedule" },
+  { name: "일정", path: "/gameschedule" },
   { name: "순위", path: "/ranking" },
   { name: "뉴스", path: "/news" },
   { name: "커뮤니티", path: "/community" },
-  { name: "배팅", path: "/betting" },
   { name: "경품 응모", path: "/prizelist" },
   { name: "마이페이지", path: "/mypage" },
 ];
@@ -64,7 +63,7 @@ export default function Header() {
 
   return (
     <header
-      className="border-b shadow-sm sticky top-0 z-50 bg-white"
+      className="border-b shadow-sm sticky top-0 z-50 bg-white dark:bg-zinc-950 text-black dark:text-white"
       onClick={(e) => {
         e.stopPropagation();
       }}
@@ -96,8 +95,8 @@ export default function Header() {
           </button>
 
           {/* 로고 */}
-          <Link to="/" className="text-xl font-bold text-blue-600">
-            로고
+          <Link to="/" className="text-xl font-bold text-green-600">
+            Chantify
           </Link>
         </div>
 
@@ -107,7 +106,7 @@ export default function Header() {
             <Link
               key={item.path}
               to={item.path}
-              className="hover:text-blue-500 transition"
+              className="text-gray-700 dark:text-gray-300 hover:text-green-500 dark:hover:text-green-400 transition"
             >
               {item.name}
             </Link>
@@ -134,7 +133,7 @@ export default function Header() {
                 key={item.path}
                 to={item.path}
                 onClick={() => setIsOpen(false) /** 메뉴 클릭시 리스트 닫기 */}
-                className="hover:text-blue-500"
+                className="text-gray-700 dark:text-gray-300 hover:text-green-500 dark:hover:text-green-400 transition"
               >
                 {item.name}
               </Link>
@@ -156,30 +155,26 @@ export default function Header() {
           {isLoggedIn ? (
             <div className="flex flex-row items-center">
               <img
+                onClick={() => {
+                  navigate("/mypage");
+                }}
                 src={imageSrc}
                 alt="프로필"
                 className="w-8 h-8 rounded-full border border-gray-300 dark:border-zinc-700 mr-3"
               />
-
-              <Link
-                onClick={logout}
-                className="text-red-500 hover:text-red-700 transition"
-              >
-                로그아웃
-              </Link>
             </div>
           ) : (
             <>
               {/* <Link> 태그는 JSX 식이라서 부모 태그가 하나 있어야 한다. 따라서 빈 태그를 하나 생성. */}
               <Link
                 to="/login"
-                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition"
+                className="text-gray-700 dark:text-gray-300 hover:text-green-500 dark:hover:text-green-400 transition"
               >
                 로그인
               </Link>
               <Link
                 to="/signup"
-                className="border px-3 py-1 rounded hover:bg-blue-600 hover:text-white dark:text-white dark:border-white dark:hover:bg-blue-500 ml-3 transition"
+                className="border px-3 py-1 rounded text-green-500 hover:bg-green-700 hover:text-white dark:text-white dark:border-white  ml-3 transition"
               >
                 회원가입
               </Link>

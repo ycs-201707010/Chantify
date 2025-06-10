@@ -89,7 +89,7 @@ export default function EditPost() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto mt-10 p-6 bg-white dark:bg-gray-900 rounded-xl shadow">
+    <div className="max-w-7xl mx-auto mt-10 p-6 bg-white dark:bg-green-900 rounded-xl shadow">
       <h2 className="text-2xl font-bold mb-4 dark:text-white">글 수정</h2>
 
       <input

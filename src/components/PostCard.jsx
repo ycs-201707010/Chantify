@@ -12,7 +12,7 @@ export default function PostCard({
   votes,
 }) {
   return (
-    <div className="flex justify-between items-center border px-4 py-3 rounded dark:bg-zinc-800">
+    <div className="flex justify-between items-center border px-4 py-3 rounded dark:bg-zinc-700">
       <div className="flex gap-3 items-center">
         <div className="text-center">
           <button>👍</button>
