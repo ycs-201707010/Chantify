@@ -15,6 +15,8 @@ export default function PostView() {
   const [error, setError] = useState("");
   const [userVote, setUserVote] = useState({ up: false, down: false });
   const { isLoggedIn, userId } = useAuth();
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportReason, setReportReason] = useState("");
 
   // 페이지 이동
   const navigate = useNavigate();
@@ -22,9 +24,13 @@ export default function PostView() {
   console.log("postId:", postId);
   console.log("📦 postId의 타입:", typeof postId); // ← 이거 꼭 찍어봐
 
+  // useEffect(() => {
+  //   console.log("📌 첫 번째 useEffect 실행됨");
+  // }, []);
+
   useEffect(() => {
-    console.log("📌 첫 번째 useEffect 실행됨");
-  }, []);
+    console.log("🧪 showReportModal 상태 변경:", showReportModal);
+  }, [showReportModal]);
 
   // 게시글 불러오기
   useEffect(() => {
@@ -96,6 +102,50 @@ export default function PostView() {
       }
     } catch (err) {
       console.error("투표 오류:", err);
+    }
+  };
+
+  // 신고 창 띄우기
+  const handleReportClick = () => {
+    if (!isLoggedIn) {
+      console.log("게시글 신고하기 :로그인 아닐 시 ");
+      alert("로그인 후 이용해주세요.");
+      navigate("/login");
+      return;
+    }
+    console.log("게시글 신고하기 :로그인 했을 시");
+    setShowReportModal(true);
+  };
+
+  // 신고 접수하기
+  const handleReportSubmit = async () => {
+    if (!reportReason.trim()) {
+      alert("신고 사유를 입력해주세요.");
+      return;
+    }
+
+    try {
+      const res = await fetch("/checksum/report_post.jsp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          post_id: post.post_id,
+          username: userId,
+          reason: reportReason,
+        }),
+      });
+
+      const result = await res.json();
+      if (result.success) {
+        alert("신고가 접수되었습니다.");
+        setShowReportModal(false);
+        setReportReason("");
+      } else {
+        alert(result.error || "신고 처리 중 문제가 발생했습니다.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("서버 오류로 신고에 실패했습니다.");
     }
   };
 
@@ -211,7 +261,11 @@ export default function PostView() {
             >
               URL 복사
             </button>
-            <button className="px-2 py-1 border-[2px] border-gray-700 rounded-md">
+
+            <button
+              onClick={handleReportClick}
+              className="px-2 py-1 border-[2px] border-gray-700 rounded-md"
+            >
               신고
             </button>
           </div>
@@ -261,6 +315,39 @@ export default function PostView() {
           <PostComment postId={postId} />
         </div>
       </main>
+
+      {/* 디버깅용: 조건문 없이 무조건 띄움 */}
+
+      {showReportModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-zinc-800 p-6 rounded shadow-md w-[90%] max-w-md">
+            <h2 className="text-xl font-bold mb-4 dark:text-white">
+              게시글 신고
+            </h2>
+            <textarea
+              className="w-full p-2 border rounded dark:bg-zinc-700 dark:text-white"
+              placeholder="신고 사유를 작성해주세요"
+              rows={4}
+              value={reportReason}
+              onChange={(e) => setReportReason(e.target.value)}
+            />
+            <div className="flex justify-end mt-4 gap-2">
+              <button
+                onClick={() => setShowReportModal(false)}
+                className="px-3 py-1 rounded border dark:text-white"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleReportSubmit}
+                className="px-3 py-1 rounded bg-red-500 text-white hover:bg-red-700"
+              >
+                신고하기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

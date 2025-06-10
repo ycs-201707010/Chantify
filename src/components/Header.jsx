@@ -10,7 +10,7 @@ const menuItems = [
   { name: "뉴스", path: "/news" },
   { name: "커뮤니티", path: "/community" },
   { name: "배팅", path: "/betting" },
-  { name: "상점", path: "/shop" },
+  { name: "경품 응모", path: "/prizelist" },
   { name: "마이페이지", path: "/mypage" },
 ];
 
@@ -18,10 +18,20 @@ export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef(null);
   const navigate = useNavigate();
-
+  const [imageSrc, setImageSrc] = useState(null); // 업로드된 이미지 URL 또는 기본 이미지
   // 상단에 추가
   const { isLoggedIn, userId, logout } = useAuth();
-  const profileImgUrl = "https://avatars.githubusercontent.com/u/9919?v=4"; // 더미 이미지
+
+  // 사용자 정보 불러오기
+  useEffect(() => {
+    fetch(`/checksum/get_profile.jsp?user_id=${userId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setImageSrc(data.picture_url); // 서버에서 img URL 제공 필요
+        }
+      });
+  }, [userId]);
 
   // setProfileImageUrl : 사용자 프로필 사진 불러와서 설정하는?메서드
 
@@ -102,6 +112,15 @@ export default function Header() {
               {item.name}
             </Link>
           ))}
+
+          {userId == "root" && (
+            <Link
+              to="/admin/dashboard"
+              className=" text-yellow-500 hover:underline"
+            >
+              관리자 페이지
+            </Link>
+          )}
         </nav>
 
         {/* 모바일 드롭다운 메뉴 */}
@@ -120,6 +139,15 @@ export default function Header() {
                 {item.name}
               </Link>
             ))}
+
+            {userId == "root" && (
+              <Link
+                to="/admin/dashboard"
+                className=" text-yellow-500 hover:underline"
+              >
+                관리자 페이지
+              </Link>
+            )}
           </nav>
         )}
 
@@ -128,7 +156,7 @@ export default function Header() {
           {isLoggedIn ? (
             <div className="flex flex-row items-center">
               <img
-                src={profileImgUrl}
+                src={imageSrc}
                 alt="프로필"
                 className="w-8 h-8 rounded-full border border-gray-300 dark:border-zinc-700 mr-3"
               />

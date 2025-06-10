@@ -9,6 +9,9 @@ import EditPost from "./EditPost";
 import PostView from "./PostView";
 import MyPage from "./MyPage";
 import EditProfile from "./EditProfile";
+import PrizeList from "./PrizeList";
+import AdminDashboard from "./admin/AdminDashBoard";
+import AdminPrizes from "./admin/AdminPrizes";
 
 import { AuthProvider } from "./contexts/AuthContext"; // ✅ 추가
 import { DarkModeProvider } from "./contexts/DarkModeContext";
@@ -30,6 +33,9 @@ export default function App() {
             <Route path="/editpost/:postId" element={<EditPost />} />
             <Route path="/editprofile" element={<EditProfile />} />
             <Route path="/mypage" element={<MyPage />} />
+            <Route path="/prizelist" element={<PrizeList />} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />}></Route>
+            <Route path="/admin/prizes" element={<AdminPrizes />}></Route>
           </Routes>
         </BrowserRouter>
       </AuthProvider>

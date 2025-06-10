@@ -28,19 +28,6 @@ export default function MyPage() {
   // 페이지 이동
   const navigate = useNavigate();
 
-  // 사용자 정보 불러오기
-  useEffect(() => {
-    fetch(`/checksum/get_profile.jsp?user_id=${userId}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
-          setNickname(data.nickname);
-          setComment(data.comment);
-          setImagePreview(data.picture_url); // 서버에서 img URL 제공 필요
-        }
-      });
-  }, [userId]);
-
   // 게시판 목록 불러오기
   useEffect(() => {
     const fetchBoards = async () => {
